@@ -17,7 +17,7 @@ Python version required: 3.7+
         Additional vars (for message writing): \
         - `TOKEN` - unique token (issued after registration) for chat. \
         - `USERNAME` - desirable username for chat registration. \
-        - `MESSAGE` - message for sending. \
+        - `MESSAGE` - message for sending(required set here or in  argparse). 
 
 # How to launch
 Instead environ vars you can use arguments. For more info use `python3 chat_reader.py --help` for reading script and `python3 chat_writer.py --help` for sending script.
