@@ -13,7 +13,7 @@ Python version required: 3.7+
         - `READ_PORT` - port for read messages from chat. \
         - `WRITE_PORT` - port for write messages to chat. \
         - `ATTEMPTS_COUNT` - connection attempts before 3 sec timeout.  \
-        - `HISTORY_LOG_PATH` - path to folder where will be created `history_log.txt` file with chat messages history. \
+        - `HISTORY_LOG_DIR_PATH` - path to folder where will be created `history_log.txt` file with chat messages history. \
         Additional vars (for message writing): \
         - `TOKEN` - unique token (issued after registration) for chat. \
         - `USERNAME` - desirable username for chat registration. \
