@@ -16,11 +16,11 @@ def create_parser_for_user_arguments():
                         help='chat port for message sending',
                         type=int)
     parser.add_argument('--history', required=False,
-                        help='history log path',
+                        help='history log dir path',
                         type=str)
     parser.add_argument('--attempts', required=False,
                         help='connect attempts before timeout',
-                        type=str)
+                        type=int)
     parser.add_argument('--token', required=False,
                         help='user token',
                         type=str)
@@ -37,7 +37,7 @@ def create_parser_for_user_arguments():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     user_arguments = create_parser_for_user_arguments()
-    history_log_path = user_arguments.history or os.getenv('HISTORY_LOG_PATH', f'{os.getcwd()}')
+    history_log_path = user_arguments.history or os.getenv('HISTORY_LOG_DIR_PATH', f'{os.getcwd()}')
     if not os.path.exists(history_log_path):
         print(f'history log path does not exist {history_log_path}', file=sys.stderr)
         sys.exit(2)
