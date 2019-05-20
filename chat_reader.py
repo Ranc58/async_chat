@@ -1,10 +1,42 @@
 import asyncio
 import os
 import argparse
+import socket
 import sys
 import logging
 
-from chat_tool import ChatTool
+from aiofile import AIOFile
+
+from chat_tool import get_reader_writer_tools, read_message_from_chat, write_to_file
+
+
+async def read_chat(host, port, log_file, attempts):
+    async with get_reader_writer_tools(host, port, attempts, log_file) as (reader, writer):
+        while True:
+            try:
+                decoded_data = await read_message_from_chat(reader)
+            except (
+                    socket.gaierror,
+                    ConnectionRefusedError,
+                    ConnectionResetError,
+                    ConnectionError,
+            ) as error:
+                raise error
+            await write_to_file(decoded_data, log_file)
+
+
+async def stream_chat(host, port, history_log_path, attempts):
+    async with AIOFile(f'{history_log_path}/history_logs.txt', 'a+') as log_file:
+        while True:
+            try:
+                await read_chat(host, port, log_file, attempts)
+            except (
+                    socket.gaierror,
+                    ConnectionRefusedError,
+                    ConnectionResetError,
+                    ConnectionError,
+            ):
+                continue
 
 
 def create_parser_for_user_arguments():
@@ -35,5 +67,4 @@ if __name__ == '__main__':
     host = user_arguments.host or os.getenv('HOST', 'minechat.dvmn.org')
     port = user_arguments.port or os.getenv('READ_PORT', 5000)
     attempts = int(user_arguments.attempts or os.getenv('ATTEMPTS_COUNT', 3))
-    chat_tool = ChatTool(host, port, history_log_path, attempts)
-    asyncio.run(chat_tool.read_chat())
+    asyncio.run(stream_chat(host, port, history_log_path, attempts))

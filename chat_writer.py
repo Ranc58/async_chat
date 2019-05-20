@@ -1,10 +1,67 @@
 import asyncio
+import json
 import logging
 import os
 import argparse
+import socket
 import sys
 
-from chat_tool import ChatTool
+from aiofile import AIOFile
+
+from chat_tool import get_reader_writer_tools, read_message_from_chat, write_message_to_chat
+
+
+async def authorise(reader, writer, token):
+    success = True
+    await read_message_from_chat(reader)
+    await write_message_to_chat(writer, f'{token}\n')
+    logging.debug(f'SENDED: {token}')
+    decoded_data = await read_message_from_chat(reader)
+    if not json.loads(decoded_data):
+        logging.debug('incorrect token')
+        success = False
+    else:
+        logging.debug(decoded_data)
+    return success
+
+
+async def register(reader, writer, username):
+    await read_message_from_chat(reader)
+    await write_message_to_chat(writer)
+    await read_message_from_chat(reader)
+    if username:
+        await write_message_to_chat(writer, f'{username}\n')
+        logging.debug(f'SENDED: {username}')
+    else:
+        await write_message_to_chat(writer)
+    decoded_data = await read_message_from_chat(reader)
+    return json.loads(decoded_data)
+
+
+async def submit_message(writer, message):
+    await write_message_to_chat(writer, f'{message}\n\n')
+    logging.debug(f'SENDED: {message}')
+
+
+async def write_to_chat(host, port, attempts, history_log_path, message, token=None, username=None):
+    async with AIOFile(f'{history_log_path}/history_logs.txt', 'a+') as log_file:
+        async with get_reader_writer_tools(host, port, attempts, log_file) as (reader, writer):
+            try:
+                if token:
+                    authorised = await authorise(reader, writer, token)
+                    if not authorised:
+                        return
+                else:
+                    await register(reader, writer, username)
+                await submit_message(writer, message)
+            except (
+                    socket.gaierror,
+                    ConnectionRefusedError,
+                    ConnectionResetError,
+                    ConnectionError,
+            ) as error:
+                logging.error(str(error))
+                sys.exit()
 
 
 def create_parser_for_user_arguments():
@@ -47,5 +104,6 @@ if __name__ == '__main__':
     token = user_arguments.token or os.getenv('TOKEN')
     username = user_arguments.username or os.getenv('USERNAME')
     message = user_arguments.message or os.getenv('MESSAGE')
-    chat_tool = ChatTool(host, port, history_log_path, attempts)
-    asyncio.run(chat_tool.write_to_chat(token=token, username=username, message=message))
+    asyncio.run(write_to_chat(
+        host, port, attempts, history_log_path, message=message, token=token, username=username
+    ))
