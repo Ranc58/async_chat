@@ -61,8 +61,8 @@ async def read_message_from_chat(reader):
             ConnectionRefusedError,
             ConnectionResetError,
             ConnectionError,
-    ) as error:
-        raise error
+    ):
+        raise
     else:
         decoded_data = response.decode().rstrip('\n\r')
         logging.debug(decoded_data)
@@ -79,5 +79,5 @@ async def write_message_to_chat(writer, message=None):
             ConnectionRefusedError,
             ConnectionResetError,
             ConnectionError,
-    ) as error:
-        raise error
+    ):
+        raise
