@@ -8,7 +8,7 @@ import sys
 
 from aiofile import AIOFile
 
-from chat_tool import get_reader_writer_tools, read_message_from_chat, write_message_to_chat
+from chat_tool import get_open_connection_tools, read_message_from_chat, write_message_to_chat
 
 
 async def authorise(reader, writer, token):
@@ -45,7 +45,7 @@ async def submit_message(writer, message):
 
 async def write_to_chat(host, port, attempts, history_log_path, message, token=None, username=None):
     async with AIOFile(f'{history_log_path}/history_logs.txt', 'a+') as log_file:
-        async with get_reader_writer_tools(host, port, attempts, log_file) as (reader, writer):
+        async with get_open_connection_tools(host, port, attempts, log_file) as (reader, writer):
             try:
                 if token:
                     authorised = await authorise(reader, writer, token)

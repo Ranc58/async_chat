@@ -5,7 +5,7 @@ import logging
 import socket
 
 
-async def get_connection_tools(host, port, attempts, log_file):
+async def get_open_connection(host, port, attempts, log_file):
     attempts_count = 0
     reader = None
     writer = None
@@ -37,14 +37,12 @@ async def get_connection_tools(host, port, attempts, log_file):
 
 
 @asynccontextmanager
-async def get_reader_writer_tools(host, port, attempts, log_file):
-    writer = None
+async def get_open_connection_tools(host, port, attempts, log_file):
     try:
-        reader, writer = await get_connection_tools(host, port, attempts, log_file)
+        reader, writer = await get_open_connection(host, port, attempts, log_file)
         yield reader, writer
     finally:
-        if writer:
-            writer.close()
+        writer.close()
 
 
 async def write_to_file(text, log_file):
@@ -54,30 +52,14 @@ async def write_to_file(text, log_file):
 
 
 async def read_message_from_chat(reader):
-    try:
-        response = await reader.readline()
-    except (
-            socket.gaierror,
-            ConnectionRefusedError,
-            ConnectionResetError,
-            ConnectionError,
-    ):
-        raise
-    else:
-        decoded_data = response.decode().rstrip('\n\r')
-        logging.debug(decoded_data)
-        return decoded_data
+    response = await reader.readline()
+    decoded_data = response.decode().rstrip('\n\r')
+    logging.debug(decoded_data)
+    return decoded_data
 
 
 async def write_message_to_chat(writer, message=None):
     if not message:
         message = f'\n'
-    try:
-        writer.write(message.encode())
-    except (
-            socket.gaierror,
-            ConnectionRefusedError,
-            ConnectionResetError,
-            ConnectionError,
-    ):
-        raise
+    writer.write(message.encode())
+    await writer.drain()

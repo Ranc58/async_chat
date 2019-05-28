@@ -7,21 +7,13 @@ import logging
 
 from aiofile import AIOFile
 
-from chat_tool import get_reader_writer_tools, read_message_from_chat, write_to_file
+from chat_tool import get_open_connection_tools, read_message_from_chat, write_to_file
 
 
 async def read_chat(host, port, log_file, attempts):
-    async with get_reader_writer_tools(host, port, attempts, log_file) as (reader, writer):
+    async with get_open_connection_tools(host, port, attempts, log_file) as (reader, writer):
         while True:
-            try:
-                decoded_data = await read_message_from_chat(reader)
-            except (
-                    socket.gaierror,
-                    ConnectionRefusedError,
-                    ConnectionResetError,
-                    ConnectionError,
-            ) as error:
-                raise error
+            decoded_data = await read_message_from_chat(reader)
             await write_to_file(decoded_data, log_file)
 
 
